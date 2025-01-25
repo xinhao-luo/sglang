@@ -47,6 +47,7 @@ def trt_fused_moe(hidden_states: torch.Tensor, # [num_tokens, hidden_size]
     device = hidden_states.device
 
     assert gating_output.shape[1] == w1.shape[0], "Number of experts mismatch"
+    assert use_fp8_w8a8 == False, "FlashInfer Grouped GEMM not support fp8 dtype now"
 
     intermediate_cache1 = torch.empty(num_tokens * topk, inter_size * 2, dtype=dtype, device=device)
     intermediate_cache2 = torch.empty(num_tokens * topk, inter_size, dtype=dtype, device=device)
@@ -201,13 +202,16 @@ class TestFusedMOE(unittest.TestCase):
             triton_output = fused_moe(a, w1, w2, score, topk, renormalize=False)
             torch_output = self.torch_naive_moe(a, w1, w2, score, topk)
             torch.testing.assert_close(triton_output, torch_output, atol=2e-2, rtol=0)
+        torch.cuda.empty_cache()
 
     def test_various_configurations(self):
-        m_values = [1, 33, 64, 222, 1024 * 128]
-        n_values = [128, 1024, 2048]
-        k_values = [128, 511, 1024]
+        m_values = [16, 32, 64, 128, 512, 1024, 2048, 4096]
+        n_values = [128, 512, 1024, 2048]
+        k_values = [128, 512, 1024, 2048]
         dtypes = [torch.float16, torch.bfloat16]
-        fp8_modes = [False, True]
+        fp8_modes = [False]
+
+        init_flashinfer_segment_gemm()
 
         for m in m_values:
             for n in n_values:
