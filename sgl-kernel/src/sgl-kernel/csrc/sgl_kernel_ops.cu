@@ -85,6 +85,24 @@ void top_p_sampling_from_probs(at::Tensor probs, at::Tensor uniform_samples, at:
                                std::optional<at::Tensor> maybe_top_p_arr, double top_p_val, bool deterministic,
                                int64_t cuda_stream);
 
+// trt_moe_expand_and_permute
+void trt_moe_expand_and_permute(
+    torch::Tensor permuted_tokens,             
+    torch::Tensor cum_num_tokens_per_expert, 
+    torch::Tensor reverse_permutation_map,  
+    torch::Tensor input_tokens,             
+    torch::Tensor topk_indices,             
+    torch::Tensor token_expert_indices);
+
+//trt_unpermute_and_reduce
+void trt_moe_unpermute_and_reduce(
+    torch::Tensor output_tokens,
+    torch::Tensor experts_output,
+    torch::Tensor topk_weights,
+    torch::Tensor topk_indices, 
+    torch::Tensor reverse_permutation_map,
+    bool renormalize);
+
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   // trt_reduce
   m.def("init_custom_ar", &init_custom_ar, "init custom allreduce meta (CUDA)");
@@ -128,4 +146,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("top_k_top_p_sampling_from_probs", &top_k_top_p_sampling_from_probs, "Top K Top P Sampling From Probs (CUDA)");
   // top p sampling from probs
   m.def("top_p_sampling_from_probs", &top_p_sampling_from_probs, "Top P Sampling From Probs (CUDA)");
+  // trt_moe_expand_and_permute
+  m.def("trt_moe_expand_and_permute", &trt_moe_expand_and_permute, "TensorRT-LLM MoE Expand And Permute");
+  // trt_moe_unpermute_and_reduce
+  m.def("trt_moe_unpermute_and_reduce", &trt_moe_unpermute_and_reduce, "TensorRT-LLM MoE Unpermute And Reduce");
 }

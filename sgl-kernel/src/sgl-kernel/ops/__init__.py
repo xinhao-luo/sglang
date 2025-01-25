@@ -36,6 +36,8 @@ from sgl_kernel.ops._kernels import top_p_renorm_probs as _top_p_renorm_probs
 from sgl_kernel.ops._kernels import (
     top_p_sampling_from_probs as _top_p_sampling_from_probs,
 )
+from sgl_kernel.ops._kernels import trt_moe_expand_and_permute as _trt_moe_expand_and_permute
+from sgl_kernel.ops._kernels import trt_moe_unpermute_and_reduce as _trt_moe_unpermute_and_reduce
 from sgl_kernel.ops.utils import (
     _get_cache_buf,
     _get_cuda_stream,
@@ -461,3 +463,24 @@ def min_p_sampling_from_probs(
     return _min_p_sampling_from_probs_internal(
         probs, uniform_samples, *_to_tensor_scalar_tuple(min_p), deterministic
     )
+
+
+def trt_moe_expand_and_permute(
+    permuted_tokens: torch.Tensor,
+    cum_num_tokens_per_expert: torch.Tensor,
+    reverse_permutation_map: torch.Tensor,
+    input_tokens: torch.Tensor,
+    topk_indices: torch.Tensor,
+    token_expert_indices: torch.Tensor,
+):
+    _trt_moe_expand_and_permute(permuted_tokens, cum_num_tokens_per_expert, reverse_permutation_map, input_tokens, topk_indices, token_expert_indices)
+
+def trt_moe_unpermute_and_reduce(
+    output_tokens: torch.Tensor,
+    experts_output: torch.Tensor,
+    topk_weights: torch.Tensor,
+    topk_indices: torch.Tensor,
+    reverse_permutation_map: torch.Tensor,
+    renormalize: bool,
+):
+    _trt_moe_unpermute_and_reduce(output_tokens, experts_output, topk_weights, topk_indices, reverse_permutation_map, renormalize)

@@ -21,6 +21,8 @@ from sgl_kernel.ops import (
     top_k_renorm_prob,
     top_k_top_p_sampling_from_probs,
     top_p_renorm_prob,
+    trt_moe_expand_and_permute,
+    trt_moe_unpermute_and_reduce,
 )
 
 __all__ = [
@@ -46,4 +48,6 @@ __all__ = [
     "top_k_renorm_prob",
     "top_k_top_p_sampling_from_probs",
     "top_p_renorm_prob",
+    "trt_moe_expand_and_permute",
+    "trt_moe_unpermute_and_reduce",
 ]
